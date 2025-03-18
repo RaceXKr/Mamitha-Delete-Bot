@@ -136,6 +136,7 @@ async def delete_all_messages(client, message):
 async def main():
     await user_bot.start()
     print("✅ Userbot is running!")
-    await user_bot.idle()  # Keeps the bot running
+    await asyncio.Event().wait()  # Keeps the bot running
+  # Keeps the bot running
 
 asyncio.run(main())  # Run the bot
