@@ -136,3 +136,4 @@ async def main():
     await asyncio.Event().wait()  # Keeps the bot running
 
 asyncio.run(main())  # Run the bot with keep-alive
+user_bot.run()
