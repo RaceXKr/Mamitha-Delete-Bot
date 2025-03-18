@@ -109,7 +109,7 @@ def run_flask():
 
 # Keep-alive function using aiohttp
 async def keep_alive():
-    url = "https://low-lesly-selvarajsangeeth419-4a099a4d.koyeb.app"  # Replace with your bot's URL
+    url = "https://conservation-adria-selvarajsangeeth419-5dc1bf17.koyeb.app"  # Replace with your bot's URL
     while True:
         try:
             async with ClientSession() as session:
