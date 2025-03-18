@@ -7,12 +7,11 @@ from flask import Flask, redirect
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from motor.motor_asyncio import AsyncIOMotorClient
 
+# Environment variables
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_SESSION = os.environ.get("USER_SESSION", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")  # Use a Pyrogram user session
 DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://krkkanish2:kx@cluster0.uhrg1rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-
-
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
 
 # Database setup
@@ -20,8 +19,10 @@ client = AsyncIOMotorClient(DATABASE_URL)
 db = client['databas']
 groups = db['group_id']
 
+# Initialize Pyrogram Client (Userbot)
 user_bot = Client("user_deletebot", session_string=USER_SESSION, api_id=API_ID, api_hash=API_HASH)
 
+# Start Command
 @user_bot.on_message(filters.command("start") & filters.private)
 async def start(_, message):
     button = [[
@@ -35,6 +36,7 @@ async def start(_, message):
         parse_mode=enums.ParseMode.MARKDOWN
     )
 
+# Set Time Command
 @user_bot.on_message(filters.command("set_time"))
 async def set_delete_time(_, message):
     if message.chat.type == enums.ChatType.PRIVATE:
@@ -63,6 +65,7 @@ async def set_delete_time(_, message):
 
     await message.reply_text(f"**Set delete time to {delete_time} seconds for this group.**")
 
+# Auto Delete Messages
 @user_bot.on_message(filters.group & ~filters.command(["set_time", "start", "delete_all"]))
 async def delete_message(client, message):
     chat_id = message.chat.id
@@ -82,6 +85,7 @@ async def delete_message(client, message):
         except Exception as e:
             print(f"Error deleting message in {chat_id}: {e}")
 
+# Delete All Messages
 @user_bot.on_message(filters.command("delete_all"))
 async def delete_all_messages(client, message):
     chat_id = message.chat.id
@@ -129,11 +133,21 @@ flask_thread = Thread(target=run_flask)
 flask_thread.daemon = True
 flask_thread.start()
 
-# Run keep-alive function
+# Main function to start userbot and keep-alive
 async def main():
-    asyncio.create_task(keep_alive())  # Ensure keep-alive runs in the background
-    await user_bot.start()
+    print("Starting Userbot...")
+    try:
+        await user_bot.start()
+        me = await user_bot.get_me()
+        print(f"Logged in as: {me.first_name} ({me.id})")
+    except Exception as e:
+        print(f"Error starting Userbot: {e}")
+        return
+
+    # Start keep-alive in background
+    asyncio.create_task(keep_alive())
+
     await asyncio.Event().wait()  # Keeps the bot running
 
-asyncio.run(main())  # Run the bot with keep-alive
-user_bot.run()
+if __name__ == "__main__":
+    asyncio.run(main())  # Run the bot with keep-alive
