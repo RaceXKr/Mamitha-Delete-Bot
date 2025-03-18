@@ -6,7 +6,7 @@ from aiohttp import ClientSession
 from flask import Flask, redirect
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from motor.motor_asyncio import AsyncIOMotorClient
-
+#vae4
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_SESSION = os.environ.get("USER_SESSION", "AgHAh6MAG4P7me1d6hXKIGh0gA7Jb8ygRFXzo42Vq0P619HA083Sw7WqFbQXeYZ9MmlLSoX3tZImEbRhARj2JgJTQQ9RBQSeCeEOs1Kl61tjvGseihXBrMuw2fzSIH98kDvsPQHKvc4SBOXj_NByS-9CoPiV9jmUGLG7eQWpYyE58j9ae1pGppDL2_ajJrI_5FkfIKbpAG9MZzWKd_K9jEQmTFvJ7u9wkh0RhF0R1d-jK2r9HX2Gn85U3LgdZFSS-jf_FlgtTyx2--snx_0qtezHuNGi3UEmArhv8GaRhVKYLY24A01ET11TVEaIXD4V17H8p1GW6Qko-Ay09IQ8OAo5Y9wo1AAAAAGdPH8SAA")
