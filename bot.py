@@ -9,7 +9,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
-USER_SESSION = os.environ.get("USER_SESSION", "AgHAh6MAG4P7me1d6hXKIGh0gA7Jb8ygRFXzo42Vq0P619HA083Sw7WqFbQXeYZ9MmlLSoX3tZImEbRhARj2JgJTQQ9RBQSeCeEOs1Kl61tjvGseihXBrMuw2fzSIH98kDvsPQHKvc4SBOXj_NByS-9CoPiV9jmUGLG7eQWpYyE58j9ae1pGppDL2_ajJrI_5FkfIKbpAG9MZzWKd_K9jEQmTFvJ7u9wkh0RhF0R1d-jK2r9HX2Gn85U3LgdZFSS-jf_FlgtTyx2--snx_0qtezHuNGi3UEmArhv8GaRhVKYLY24A01ET11TVEaIXD4V17H8p1GW6Qko-Ay09IQ8OAo5Y9wo1AAAAAGdPH8SAA")  # Replace with your session string
+USER_SESSION = os.environ.get("USER_SESSION", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")  # Use a Pyrogram user session
 DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://krkkanish2:kx@cluster0.uhrg1rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
@@ -21,7 +21,6 @@ groups = db['group_id']
 
 user_bot = Client("user_deletebot", session_string=USER_SESSION, api_id=API_ID, api_hash=API_HASH)
 
-# Command Handlers
 @user_bot.on_message(filters.command("start") & filters.private)
 async def start(_, message):
     button = [[
@@ -85,7 +84,7 @@ async def delete_all_messages(client, message):
 
     administrators = [m.user.id async for m in user_bot.get_chat_members(chat_id, filter=enums.ChatMembersFilter.ADMINISTRATORS)]
     if user_id and user_id not in administrators:
-        await message.reply("Only group admins can use this command.")
+       await message.reply("Only group admins can use this command.")
         return
 
     deleted_count = 0
@@ -98,7 +97,7 @@ async def delete_all_messages(client, message):
 
     await message.reply(f"✅ Successfully deleted {deleted_count} messages in this group/channel!")
 
-# Flask Configuration for Keep-Alive
+# Flask configuration
 app = Flask(__name__)
 
 @app.route('/')
@@ -108,30 +107,17 @@ def index():
 def run_flask():
     app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
 
-# Keep-Alive Function using aiohttp
+# Keep-alive function using aiohttp
 async def keep_alive():
     url = "https://low-lesly-selvarajsangeeth419-4a099a4d.koyeb.app"  # Replace with your bot's URL
     while True:
         try:
             async with ClientSession() as session:
                 async with session.get(url) as response:
-                    print(f"✅ Keep-alive ping sent! Status: {response.status}")
+                    print(f"Keep-alive ping sent! Status: {response.status}")
         except Exception as e:
-            print(f"⚠ Keep-alive error: {e}")
+            print(f"Keep-alive error: {e}")
         await asyncio.sleep(300)  # Ping every 5 minutes
 
-# Start Keep-Alive and Flask Before Bot Runs
-def start_services():
-    # Start Flask server in a separate thread
-    flask_thread = Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-    
-    # Start Keep-Alive in an Asyncio Loop
-    loop = asyncio.get_event_loop()
-    loop.create_task(keep_alive())
-
-# Run the bot and services
-if __name__ == "__main__":
-    start_services()  # Start Flask and Keep-Alive
-    user_bot.run()  # Start Pyrogram bot properly
+# Run bot
+user_bot.run()
