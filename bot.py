@@ -4,14 +4,13 @@ from pyrogram import Client, filters, enums
 from threading import Thread
 from aiohttp import ClientSession
 from flask import Flask, redirect
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from motor.motor_asyncio import AsyncIOMotorClient
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_SESSION = os.environ.get("USER_SESSION", "AgHAh6MAG4P7me1d6hXKIGh0gA7Jb8ygRFXzo42Vq0P619HA083Sw7WqFbQXeYZ9MmlLSoX3tZImEbRhARj2JgJTQQ9RBQSeCeEOs1Kl61tjvGseihXBrMuw2fzSIH98kDvsPQHKvc4SBOXj_NByS-9CoPiV9jmUGLG7eQWpYyE58j9ae1pGppDL2_ajJrI_5FkfIKbpAG9MZzWKd_K9jEQmTFvJ7u9wkh0RhF0R1d-jK2r9HX2Gn85U3LgdZFSS-jf_FlgtTyx2--snx_0qtezHuNGi3UEmArhv8GaRhVKYLY24A01ET11TVEaIXD4V17H8p1GW6Qko-Ay09IQ8OAo5Y9wo1AAAAAGdPH8SAA")  # Replace with your session string
 DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://krkkanish2:kx@cluster0.uhrg1rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
 
 # Database setup
@@ -20,6 +19,33 @@ db = client['databas']
 groups = db['group_id']
 
 user_bot = Client("user_deletebot", session_string=USER_SESSION, api_id=API_ID, api_hash=API_HASH)
+
+# Flask setup
+app = Flask(__name__)
+
+@app.route('/')
+def index():
+    return redirect("https://telegram.me/KristyX_TG", code=302)
+
+def run_flask():
+    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
+
+# Start Flask in a separate thread
+flask_thread = Thread(target=run_flask)
+flask_thread.daemon = True
+flask_thread.start()
+
+# Keep-Alive Function (Non-Blocking)
+async def keep_alive():
+    url = "https://your-koyeb-app-url.koyeb.app"
+    while True:
+        try:
+            async with ClientSession() as session:
+                async with session.get(url) as response:
+                    print(f"✅ Keep-alive ping sent! Status: {response.status}")
+        except Exception as e:
+            print(f"⚠ Keep-alive error: {e}")
+        await asyncio.sleep(300)  # Ping every 5 minutes
 
 # Command Handlers
 @user_bot.on_message(filters.command("start") & filters.private)
@@ -70,7 +96,11 @@ async def delete_message(client, message):
     if not group:
         return
 
-    delete_time = int(group.get("delete_time", 0))
+    try:
+        delete_time = int(group.get("delete_time", 0))
+    except ValueError:
+        delete_time = 0
+
     if delete_time > 0:
         await asyncio.sleep(delete_time)
         try:
@@ -98,40 +128,12 @@ async def delete_all_messages(client, message):
 
     await message.reply(f"✅ Successfully deleted {deleted_count} messages in this group/channel!")
 
-# Flask Configuration for Keep-Alive
-app = Flask(__name__)
+# Main function
+async def main():
+    await user_bot.start()
+    print("✅ Userbot is running!")
+    asyncio.create_task(keep_alive())  # Start keep-alive function
+    await asyncio.Event().wait()  # Keeps the bot running
 
-@app.route('/')
-def index():
-    return redirect("https://telegram.me/KristyX_TG", code=302)
-
-def run_flask():
-    app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
-
-# Keep-Alive Function using aiohttp
-async def keep_alive():
-    url = "https://low-lesly-selvarajsangeeth419-4a099a4d.koyeb.app"  # Replace with your bot's URL
-    while True:
-        try:
-            async with ClientSession() as session:
-                async with session.get(url) as response:
-                    print(f"✅ Keep-alive ping sent! Status: {response.status}")
-        except Exception as e:
-            print(f"⚠ Keep-alive error: {e}")
-        await asyncio.sleep(300)  # Ping every 5 minutes
-
-# Start Keep-Alive and Flask Before Bot Runs
-def start_services():
-    # Start Flask server in a separate thread
-    flask_thread = Thread(target=run_flask)
-    flask_thread.daemon = True
-    flask_thread.start()
-    
-    # Start Keep-Alive in an Asyncio Loop
-    loop = asyncio.get_event_loop()
-    loop.create_task(keep_alive())
-
-# Run the bot and services
-if __name__ == "__main__":
-    start_services()  # Start Flask and Keep-Alive
-    user_bot.run()  # Start Pyrogram bot properly
+# Run the bot
+asyncio.run(main())
