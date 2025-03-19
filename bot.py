@@ -30,9 +30,6 @@ groups = db['group_id']
 user_bot = Client("user_deletebot", session_string=USER_SESSION, api_id=API_ID, api_hash=API_HASH)
 
 # Flask configuration
-
-Thread(target=run_flask).start()  # Run Flask in a separate thread
-
 app = Flask(__name__)
 
 @app.route('/')
