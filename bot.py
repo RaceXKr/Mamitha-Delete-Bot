@@ -19,7 +19,7 @@ USER_SESSION = os.environ.get("USER_SESSION", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiE
 DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://krkkanish2:kx@cluster0.uhrg1rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
-KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "https://conservation-adria-selvarajsangeeth419-5dc1bf17.koyeb.app")
+KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "https://digital-jeanne-kristyzzd-936cc781.koyeb.app")
 
 # Database setup
 client = AsyncIOMotorClient(DATABASE_URL)
