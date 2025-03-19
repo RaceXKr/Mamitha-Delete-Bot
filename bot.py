@@ -29,6 +29,9 @@ groups = db['group_id']
 # Initialize Pyrogram user bot
 user_bot = Client("user_deletebot", session_string=USER_SESSION, api_id=API_ID, api_hash=API_HASH)
 
+# Flask configuration
+app = Flask(__name__)
+
 @app.route('/')
 def index():
     return redirect("https://telegram.me/KristyX_TG", code=302)
