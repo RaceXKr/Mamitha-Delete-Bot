@@ -51,13 +51,14 @@ async def keep_alive():
 
 @user_bot.on_message(filters.command("start") & filters.private)
 async def start(_, message):
+    logger.info(f"Received /start command from {message.from_user.id}")
     button = [[
         InlineKeyboardButton("➕ Add me to your Group", url=f"http://t.me/{BOT_USERNAME}?startgroup=none&admin=delete_messages"),
     ], [
         InlineKeyboardButton("📌 Updates Channel", url="https://t.me/botsync"),
     ]]
     await message.reply_text(
-        f"**Hello {message.from_user.first_name},\nI am an AutoDelete Bot. I can delete all messages in your group automatically after a certain period of time.\nUsage:** `/set_time <time_in_seconds>`",
+        f"**Hello {message.from_user.first_name},\nI am an AutoDelete Bot.\nUse `/set_time <time_in_seconds>` to set auto-delete time.**",
         reply_markup=InlineKeyboardMarkup(button),
         parse_mode=enums.ParseMode.MARKDOWN
     )
@@ -69,7 +70,7 @@ async def set_delete_time(_, message):
         return
 
     args = message.text.split()
-    if len(args) == 1 or not args[1].isdigit():
+    if len(args) < 2 or not args[1].isdigit():
         await message.reply_text("**Please provide the delete time in seconds. Usage:** `/set_time <time_in_seconds>`")
         return
 
@@ -81,8 +82,8 @@ async def set_delete_time(_, message):
     chat_id = message.chat.id
     user_id = message.from_user.id
     creator = await user_bot.get_chat_member(chat_id, user_id)
-    if creator.status != enums.ChatMemberStatus.OWNER:
-        await message.reply("Only the group owner can modify auto-delete settings.")
+    if creator.status not in [enums.ChatMemberStatus.OWNER, enums.ChatMemberStatus.ADMINISTRATOR]:
+        await message.reply("Only group admins can modify auto-delete settings.")
         return
 
     await groups.update_one(
@@ -92,13 +93,19 @@ async def set_delete_time(_, message):
     )
     await message.reply_text(f"**Set delete time to {delete_time} seconds for this group.**")
 
-@user_bot.on_message(filters.group & ~filters.command(["set_time", "start", "delete_all"]))
+@user_bot.on_message(filters.command("view_time"))
+async def view_time(_, message):
+    chat_id = message.chat.id
+    group = await groups.find_one({"group_id": chat_id})
+    delete_time = group.get("delete_time", "Not set")
+    await message.reply_text(f"**Auto-delete time: {delete_time} seconds.**")
+
+@user_bot.on_message(filters.group & ~filters.command(["set_time", "start", "delete_all", "view_time"]))
 async def delete_message(client, message):
     chat_id = message.chat.id
     group = await groups.find_one({"group_id": chat_id})
     if not group:
         return
-
     delete_time = int(group.get("delete_time", 0))
     if delete_time > 0:
         await asyncio.sleep(delete_time)
@@ -112,10 +119,9 @@ async def delete_all_messages(client, message):
     chat_id = message.chat.id
     user_id = message.from_user.id
     creator = await user_bot.get_chat_member(chat_id, user_id)
-    if creator.status != enums.ChatMemberStatus.OWNER:
-        await message.reply("Only the group owner can delete all messages.")
+    if creator.status not in [enums.ChatMemberStatus.OWNER, enums.ChatMemberStatus.ADMINISTRATOR]:
+        await message.reply("Only group admins can delete all messages.")
         return
-
     deleted_count = 0
     async for msg in client.get_chat_history(chat_id, limit=100):
         try:
@@ -123,12 +129,16 @@ async def delete_all_messages(client, message):
             deleted_count += 1
         except Exception as e:
             logger.error(f"Error deleting message {msg.id}: {e}")
-
-    await message.reply(f"✅ Successfully deleted {deleted_count} messages in this group!")
+    await message.reply(f"✅ Successfully deleted {deleted_count} messages!")
 
 async def main():
-    Thread(target=run_flask).start()  # Run Flask in a separate thread
-    await asyncio.gather(user_bot.start(), keep_alive())
+    try:
+        Thread(target=run_flask).start()
+        await user_bot.start()
+        logger.info("Userbot started successfully!")
+        await keep_alive()
+    except Exception as e:
+        logger.error(f"Failed to start userbot: {e}")
 
 if __name__ == "__main__":
     asyncio.run(main())
