@@ -92,15 +92,11 @@ class AutoDeleteBot:
     def run_flask(self):
         self.flask_app.run(host="0.0.0.0", port=int(os.environ.get('PORT', 8080)))
 
-    async def start(self):
+    def run(self):
         threading.Thread(target=self.run_flask, daemon=True).start()
-        await self.user_client.start()
+        self.user_client.run()
         logger.info("User client started successfully and is listening for commands.")
-        await idle()
-
-def main():
-    bot = AutoDeleteBot()
-    asyncio.run(bot.start())
 
 if __name__ == "__main__":
-    main()
+    bot = AutoDeleteBot()
+    bot.run()
