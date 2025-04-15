@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 # Environment variables
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
-USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")  # Use a Pyrogram user session
+USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")
 DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://krkkanish2:kx@cluster0.uhrg1rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-
+TEST_DELETE_DELAY=5  # or any number of seconds
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
 KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "https://digital-jeanne-kristyzzd-936cc781.koyeb.app")
 
@@ -70,11 +70,19 @@ class AutoDeleteBot:
         async def delete_message(_, message):
             chat_id = message.chat.id
             delete_time = self.groups_data.get(chat_id, {}).get("delete_time", 600)
-            await asyncio.sleep(delete_time)
+
+            # 🟡 Final Tip: Log before sleeping
+            logger.info(f"Scheduled to delete message {message.message_id} from {chat_id} after {delete_time} seconds.")
+
+            # 🔧 Reduce sleep duration for testing responsiveness (via env var)
+            testing_override = int(os.environ.get("TEST_DELETE_DELAY", "5"))  # default to 5 seconds if not set
+            await asyncio.sleep(min(delete_time, testing_override))
+
             try:
                 await message.delete()
+                logger.info(f"Deleted message {message.message_id} from {chat_id}.")
             except Exception as e:
-                logger.error(f"Failed to delete message: {e}")
+                logger.error(f"Failed to delete message {message.message_id} from {chat_id}: {e}")
 
     @staticmethod
     def parse_time_to_seconds(time_str: str) -> Optional[int]:
