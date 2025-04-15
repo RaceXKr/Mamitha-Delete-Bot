@@ -17,7 +17,7 @@ USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOT
 DATABASE_URL = os.environ.get("DATABASE_URL", "mongodb+srv://krkkanish2:kx@cluster0.uhrg1rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
-KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "https://digital-jeanne-kristyzzd-936cc781.koyeb.app")
+KEEP_ALIVE_URL = os.environ.get("KEEP_ALIVE_URL", "https://mamitha-delete-bot.onrender.com")
 
 if not USER_STRING:
     logger.error("USER_STRING is missing. Please provide a valid Pyrogram session string.")
