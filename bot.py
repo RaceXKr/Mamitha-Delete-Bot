@@ -76,7 +76,7 @@ class AutoDeleteBot:
             logger.info(f"Scheduled to delete message {message.id} from {chat_id} after {delete_time} seconds.")
 
             # 🔧 Reduce sleep duration for testing responsiveness (via env var)
-            testing_override = int(os.environ.get("TEST_DELETE_DELAY", "5"))  # default to 5 seconds if not set
+            testing_override = int(os.environ.get("TEST_DELETE_DELAY", "600"))  # default to 5 seconds if not set
             await asyncio.sleep(min(delete_time, testing_override))
 
             try:
