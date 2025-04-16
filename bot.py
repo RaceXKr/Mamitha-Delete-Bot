@@ -12,7 +12,6 @@ API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_STRING = os.environ.get("USER_STRING", "AgHAh6MARs2Y3qzJzJQDh3kAfoKjCudJjwG6-GYE1JvET7bxFzyeKBNTpTxMCIn6_itw_G1xutV1VWIKLej_3Ab8zYdvA-4LIdZYWZ5AA2n9qBr2S55Oa9t7spw3_IOnBON7_p1aD5s2_ZMowSAMlcZnG-ZjZGyNj3Q787XtBuJErbBifYcqfX6GSXVKj0pJLoYQ6ThSV9JX_MIxMzx11_2AwrVCOZtT8dgaqMDrC-MnDL2zW1_KYSyhEtiC0LyOt42yDdpjaMh_LaogVr5kUVqf4Di529MUTYlIFYJWCPQuapXUgsr0IDQGw-hAVKHqFmijYbl3MPjyo-lgxPajWLLTafM1HgAAAAGdPH8SAA")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
-
 DELETE_TIME = 600  # seconds
 
 app = web.Application()
@@ -30,9 +29,9 @@ class AutoDeleteBot(Client):
         await super().start()
         logger.warning("User client started.")
 
-        # Setup handlers
-        self.add_handler(filters.command("start") & filters.private, self.start_command)
-        self.add_handler(filters.group, self.delete_handler)
+        # Register handlers using on_message for more control
+        self.on_message(filters.command("start") & filters.private)(self.start_command)
+        self.on_message(filters.group)(self.delete_handler)
 
         # Start keep-alive server
         app.router.add_get("/", self.health_check)
