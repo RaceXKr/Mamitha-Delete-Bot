@@ -9,7 +9,6 @@ from aiohttp import web
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
-# Environment
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")
@@ -102,7 +101,7 @@ class AutoDeleteBot:
         await self.user_client.start()
         await self.run_keep_alive()
         print("✅ Bot and keep-alive server started.")
-        await self.user_client.idle()
+        await asyncio.Event().wait()  # Keeps running
 
 if __name__ == "__main__":
     if not USER_STRING:
