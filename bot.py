@@ -13,7 +13,7 @@ API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAgkVOF0Du9ed-dpaPhw-2JWdnBZS8UhiFGZu4Dg84gPV2oBO3mhCZ9WMjpCFY8uIYpDNxW9Ua7cSuu6jhaEY4vl0LhxDnDvdEVY7a-Vvdb3mkJZiRgvRAsZJsvgtC2nDwETFdc3YaqN_wJ4WadOJQtU5NkBwh3mbXWQ14CkAiQMEV2y9OMkt1Zs9KxFXnc_bFKPuT8rxm6TpWPBb3AdzULSLcEx7uok5RcLz4zYJKiGeWx3XLFGWnWdlB1osDLET3ZU1pg7nl2nSsYqXKFVLuKrQcl8ElyajVWLl2ubGqthzvd95_r-w7s_yW5HhpanrE5xLDBJ8AaxP5T0OVjkXXkgAAAAGdPH8SAA")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
 DELETE_TIME = 10  # seconds
-AUTH_GROUPS = [-1002234999320, -1002589924363]  # Replace with your authorized group IDs
+AUTH_GROUPS = [-1002234999320, -1002589924363]  # Replace with your auth Replace with your authorized group IDs
 
 app = web.Application()
 
@@ -61,11 +61,15 @@ class AutoDeleteBot(Client):
 
     async def schedule_delete(self, message):
         try:
+            # Adding logs to track when the deletion is scheduled
+            logger.info(f"Message {message.id} will be deleted after {DELETE_TIME} seconds.")
             await asyncio.sleep(DELETE_TIME)
             await message.delete()
             logger.info(f"Message {message.id} deleted successfully after {DELETE_TIME} seconds.")
+        except asyncio.CancelledError:
+            logger.warning(f"Scheduled deletion of message {message.id} was cancelled.")
         except Exception as e:
-            logger.warning(f"Delete failed for message {message.id}: {e}")
+            logger.error(f"Error while trying to delete message {message.id}: {e}")
 
     async def health_check(self, request):
         return web.Response(text="I'm alive!", content_type='text/html')
@@ -77,5 +81,8 @@ if __name__ == "__main__":
         exit(1)
 
     bot = AutoDeleteBot()
-    # Launch using Pyrogram's internal event loop
-    bot.run()
+    try:
+        # Launch using Pyrogram's internal event loop
+        bot.run()
+    except Exception as e:
+        logger.error(f"Bot encountered an error: {e}")
