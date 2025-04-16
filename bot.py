@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiohttp import web
 
-# Logging (set to WARNING to reduce logs on Koyeb)
+# Logging
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
@@ -26,63 +26,64 @@ class AutoDeleteBot(Client):
             session_string=USER_STRING
         )
 
-    async def start(self):
-        await super().start()
+    async def start_bot(self):
+        await self.start()
         logger.warning("User client started.")
 
-        # Register handlers using on_message for more control
-        self.on_message(filters.command("start") & filters.private)(self.start_command)
-        self.on_message(filters.group)(self.delete_handler)
+        self.add_handler(filters.command("start") & filters.private, self.start_command)
+        self.add_handler(filters.group, self.delete_handler)
 
-        # Start keep-alive server
-        app.router.add_get("/", self.health_check)
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, "0.0.0.0", int(os.environ.get("PORT", 8080)))
-        await site.start()
-        logger.warning("Keep-alive server running.")
+        logger.warning("Handlers registered.")
+
+    async def stop_bot(self):
+        await self.stop()
+        logger.warning("Bot stopped.")
 
     async def start_command(self, client, message):
-        # Log the user sending the /start command
-        logger.info(f"/start command received from user {message.from_user.id}")
+        logger.info(f"/start from {message.from_user.id}")
         btn = [[InlineKeyboardButton("➕ Add me to your Group", url=f"http://t.me/{BOT_USERNAME}?startgroup=none&admin=delete_messages")]]
-        await message.reply_text(
-            "👋 Hello! I'm an auto-delete bot.\nMessages will auto-delete after 10 minutes.",
-            reply_markup=InlineKeyboardMarkup(btn)
-        )
+        await message.reply_text("👋 I'm an auto-delete bot. I delete group messages after 10 mins.", reply_markup=InlineKeyboardMarkup(btn))
 
     async def delete_handler(self, client, message):
         if message.chat.id in AUTH_GROUPS:
-            # Log the message being scheduled for deletion
-            logger.info(f"Scheduling message {message.id} for deletion in group {message.chat.id}")
+            logger.info(f"Scheduling deletion: msg {message.id} in group {message.chat.id}")
             asyncio.create_task(self.schedule_delete(message))
-        else:
-            logger.info(f"Message {message.id} ignored from unauthorized group {message.chat.id}")
 
     async def schedule_delete(self, message):
         try:
-            # Adding logs to track when the deletion is scheduled
-            logger.info(f"Message {message.id} will be deleted after {DELETE_TIME} seconds.")
+            logger.info(f"Msg {message.id} will delete after {DELETE_TIME}s")
             await asyncio.sleep(DELETE_TIME)
             await message.delete()
-            logger.info(f"Message {message.id} deleted successfully after {DELETE_TIME} seconds.")
-        except asyncio.CancelledError:
-            logger.warning(f"Scheduled deletion of message {message.id} was cancelled.")
+            logger.info(f"Deleted msg {message.id}")
         except Exception as e:
-            logger.error(f"Error while trying to delete message {message.id}: {e}")
+            logger.error(f"Failed to delete msg {message.id}: {e}")
 
     async def health_check(self, request):
-        return web.Response(text="I'm alive!", content_type='text/html')
+        return web.Response(text="I'm alive!", content_type="text/html")
 
-
-if __name__ == "__main__":
+# Entry point
+async def main():
     if not USER_STRING:
         logger.error("USER_STRING is missing.")
-        exit(1)
+        return
 
     bot = AutoDeleteBot()
+    await bot.start_bot()
+
+    app.router.add_get("/", bot.health_check)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", int(os.environ.get("PORT", 8080)))
+    await site.start()
+
+    logger.warning("Keep-alive server running.")
+    
+    # Keep running forever
     try:
-        # Launch using Pyrogram's internal event loop
-        bot.run()
-    except Exception as e:
-        logger.error(f"Bot encountered an error: {e}")
+        while True:
+            await asyncio.sleep(60)
+    finally:
+        await bot.stop_bot()
+
+if __name__ == "__main__":
+    asyncio.run(main())
