@@ -1,9 +1,8 @@
-import os, re, json, asyncio, logging, threading
+import os, re, json, asyncio, logging
 from typing import Dict, Optional
 
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 from aiohttp import web
 
 # Logging
@@ -14,6 +13,7 @@ logger = logging.getLogger(__name__)
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")
+BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
 
 CONFIG_FILE = "config.json"
 
@@ -38,7 +38,7 @@ class AutoDeleteBot:
         async def start(_, message):
             btn = [[InlineKeyboardButton("➕ Add me to your Group", url=f"http://t.me/{BOT_USERNAME}?startgroup=none&admin=delete_messages")]]
             await message.reply_text(
-                "Hello! I'm an auto-delete bot.\nUse /set_time <time> in your group (e.g., 30s, 10m, 1h)",
+                "👋 Hello! I'm an auto-delete bot.\nUse /set_time <time> in your group (e.g., 30s, 10m, 1h)",
                 reply_markup=InlineKeyboardMarkup(btn)
             )
 
@@ -52,14 +52,14 @@ class AutoDeleteBot:
             time_str = parts[1]
             delete_time = self.parse_time_to_seconds(time_str)
             if delete_time is None:
-                await message.reply("Invalid format. Use: 30s, 10m, 1h, 1d")
+                await message.reply("❌ Invalid format. Use: 30s, 10m, 1h, 1d")
                 return
 
             chat_id = str(message.chat.id)
             self.groups_data[chat_id] = {"delete_time": delete_time}
             save_config(self.groups_data)
 
-            await message.reply(f"Messages will be auto-deleted after {time_str}.")
+            await message.reply(f"✅ Messages will now be auto-deleted after {time_str}.")
 
         @self.user_client.on_message(filters.group)
         async def delete_message(_, message):
@@ -86,21 +86,27 @@ class AutoDeleteBot:
         unit_map = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
         return int(match[1]) * unit_map[match[2]]
 
-    def run_keep_alive(self):
+    async def run_keep_alive(self):
         async def handle(_):
             return web.Response(text="I'm alive!", content_type='text/html')
 
         app = web.Application()
         app.router.add_get("/", handle)
-        web.run_app(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
 
-    def run(self):
-        threading.Thread(target=self.run_keep_alive, daemon=True).start()
-        self.user_client.run()
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, "0.0.0.0", int(os.environ.get("PORT", 8080)))
+        await site.start()
+
+    async def run(self):
+        await self.user_client.start()
+        await self.run_keep_alive()
+        print("✅ Bot and keep-alive server started.")
+        await self.user_client.idle()
 
 if __name__ == "__main__":
     if not USER_STRING:
         logger.error("USER_STRING missing.")
         exit(1)
     bot = AutoDeleteBot()
-    bot.run()
+    asyncio.run(bot.run())
