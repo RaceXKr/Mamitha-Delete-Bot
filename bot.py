@@ -1,5 +1,6 @@
 import os, asyncio, logging
 from pyrogram import Client, filters
+from pyrogram.handlers import MessageHandler
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiohttp import web
 
@@ -30,8 +31,8 @@ class AutoDeleteBot(Client):
         await self.start()
         logger.warning("User client started.")
 
-        self.add_handler(filters.command("start") & filters.private, self.start_command)
-        self.add_handler(filters.group, self.delete_handler)
+        self.add_handler(MessageHandler(self.start_command, filters.command("start") & filters.private))
+        self.add_handler(MessageHandler(self.delete_handler, filters.group))
 
         logger.warning("Handlers registered.")
 
