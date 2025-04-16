@@ -6,9 +6,10 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiohttp import web
 
 # Logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)  # Increased logging level for debugging
 logger = logging.getLogger(__name__)
 
+# Environment
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_STRING = os.environ.get("USER_STRING", "AgHAh6MAtgaeUygtEKQ79xLpyRtnQtKiEOTvpRajN6EFDRG6m8cmj_qAdmyBFC7ikQkZaprRhNcUcY5WtJaAHFQQxA0rcSP5XBfAWVfpXQBWRAgRX8OtljxeW9NPaVLj5us2t2jPW1MGem7ozdedoTqSDuItwvtnGDt2EilVC1QFyuq-nCRHA_3Auu1FY0pspnD9jZBHXw-s8OaERD_m5qwDv1R6avKuiiE2uMktXFtoYKa9qTOfe82VnvMyF95HA9_m_TBfmNL-exkWjTQFVV1G9xD2TasjfKm8S0YsJphWPR8oO73ErjDleU5HrZMJ-NCwubGn8ZFWUnRPRk3JGTtShpeEDgAAAAGdPH8SAA")
@@ -35,6 +36,7 @@ class AutoDeleteBot:
     def register_handlers(self):
         @self.user_client.on_message(filters.command("start") & filters.private)
         async def start(_, message):
+            logger.debug(f"Received /start command from {message.from_user.id}")  # Debug log
             btn = [[InlineKeyboardButton("➕ Add me to your Group", url=f"http://t.me/{BOT_USERNAME}?startgroup=none&admin=delete_messages")]]
             await message.reply_text(
                 "👋 Hello! I'm an auto-delete bot.\nUse /set_time <time> in your group (e.g., 30s, 10m, 1h)",
@@ -43,6 +45,7 @@ class AutoDeleteBot:
 
         @self.user_client.on_message(filters.command("set_time") & filters.group)
         async def set_delete_time(_, message):
+            logger.debug(f"Received /set_time command in group {message.chat.id}")  # Debug log
             parts = message.text.split()
             if len(parts) < 2:
                 await message.reply("Usage: /set_time <time> (e.g., 1h, 30m, 1d)")
@@ -62,6 +65,7 @@ class AutoDeleteBot:
 
         @self.user_client.on_message(filters.group)
         async def delete_message(_, message):
+            logger.debug(f"Received message from group {message.chat.id}: {message.id}")  # Debug log
             chat_id = str(message.chat.id)
             if chat_id not in self.groups_data:
                 self.groups_data[chat_id] = {"delete_time": 600}  # default 10 mins
@@ -72,8 +76,10 @@ class AutoDeleteBot:
 
     async def schedule_delete(self, message, delay):
         try:
+            logger.debug(f"Scheduled to delete message {message.id} in {delay} seconds.")  # Debug log
             await asyncio.sleep(delay)
             await message.delete()
+            logger.info(f"Message {message.id} deleted.")  # Info log
         except Exception as e:
             logger.warning(f"Delete failed: {e}")
 
@@ -98,10 +104,12 @@ class AutoDeleteBot:
         await site.start()
 
     async def run(self):
+        logger.info("Starting user client...")  # Log client start
         await self.user_client.start()
+        logger.info("User client started.")
         await self.run_keep_alive()
-        print("✅ Bot and keep-alive server started.")
-        await asyncio.Event().wait()  # Keeps running
+        logger.info("Keep-alive server started.")
+        await self.user_client.idle()
 
 if __name__ == "__main__":
     if not USER_STRING:
