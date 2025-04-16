@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 # Environment variables
 API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
-USER_STRING = os.environ.get("USER_STRING", "AgHAh6MARubzK5Rv8Cr1MaM-PpsP4teukophxfpSX9zwtnOtb-UlZ71NgrNS9_RGMsBf8ifuP2kQLpKBPLWxua_qa_pO_-a0Z37XvLfB9dc_KwYgLjm5Hrk_gg3kpDXYs_QAAjvS0mctMlsQN2il9IihQG3e-I0hjtIRyrZgfbBek32ezo_YW1-JOWt_txtAXnffkC0jeIMOhWaPUINY1N7YhfLG8Boxin9dGr7nfMCs3qZt-p_t6NTbCERo0P2MDugtgNy6HEryY7lnj2HaRzu9mAlbRC6ypPZouoNgfVwIeZnGY2PRshKywfZvcF8jGTrpSSQxcooa6qHYFxjA4rORUyoFfQAAAAGdPH8SAA")
+USER_STRING = os.environ.get("USER_STRING", "AQGql-8Aq7mcxYq3d9LvRJSiTVAWPY-ZsNkGJEySvxmFCF2sfZiYrzECoQnYfve7h2MhaNVr_10mrWjIcIw8QHLlNEpK01Se1sfcAn_xEQOvq6pBz5XCDtrFHmUUgyXTf4O4yi9qK5_bBNwe-XDL0FDVW6aomO0FHgxMFRD-s_zHXR6GwJCr49sbRDlT99vo094SnqgoeIVee08yeL9l-lumHkDc6q0ov8FjJJB2cz1ww5Ze6xCU4zujSDPeA-7wSV4E22JlbwffbWiqZWsmNCQh-3igaBiC9enul2wWbe0g96nVp3PraM18zEX3Mf5AbRPYTe__m2qJOv5zGe1B-whg1z8HrgAAAAFzPARfAA")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
 DELETE_TIME = 10  # seconds
 AUTH_GROUPS = [-1002234999320, -1002589924363]  # Replace with your auth Replace with your authorized group IDs
