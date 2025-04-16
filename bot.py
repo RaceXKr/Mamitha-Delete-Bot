@@ -12,7 +12,8 @@ API_ID = int(os.environ.get("API_ID", 29394851))
 API_HASH = os.environ.get("API_HASH", "4a97459b3db52a61a35688e9b6b86221")
 USER_STRING = os.environ.get("USER_STRING", "AgHAh6MARs2Y3qzJzJQDh3kAfoKjCudJjwG6-GYE1JvET7bxFzyeKBNTpTxMCIn6_itw_G1xutV1VWIKLej_3Ab8zYdvA-4LIdZYWZ5AA2n9qBr2S55Oa9t7spw3_IOnBON7_p1aD5s2_ZMowSAMlcZnG-ZjZGyNj3Q787XtBuJErbBifYcqfX6GSXVKj0pJLoYQ6ThSV9JX_MIxMzx11_2AwrVCOZtT8dgaqMDrC-MnDL2zW1_KYSyhEtiC0LyOt42yDdpjaMh_LaogVr5kUVqf4Di529MUTYlIFYJWCPQuapXUgsr0IDQGw-hAVKHqFmijYbl3MPjyo-lgxPajWLLTafM1HgAAAAGdPH8SAA")
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "kdeletebot")
-DELETE_TIME = 600  # seconds
+DELETE_TIME = 10  # seconds
+AUTH_GROUPS = [-1002234999320, -1002589924363]  # Replace with your authorized group IDs
 
 app = web.Application()
 
@@ -42,6 +43,8 @@ class AutoDeleteBot(Client):
         logger.warning("Keep-alive server running.")
 
     async def start_command(self, client, message):
+        # Log the user sending the /start command
+        logger.info(f"/start command received from user {message.from_user.id}")
         btn = [[InlineKeyboardButton("➕ Add me to your Group", url=f"http://t.me/{BOT_USERNAME}?startgroup=none&admin=delete_messages")]]
         await message.reply_text(
             "👋 Hello! I'm an auto-delete bot.\nMessages will auto-delete after 10 minutes.",
@@ -49,14 +52,20 @@ class AutoDeleteBot(Client):
         )
 
     async def delete_handler(self, client, message):
-        asyncio.create_task(self.schedule_delete(message))
+        if message.chat.id in AUTH_GROUPS:
+            # Log the message being scheduled for deletion
+            logger.info(f"Scheduling message {message.id} for deletion in group {message.chat.id}")
+            asyncio.create_task(self.schedule_delete(message))
+        else:
+            logger.info(f"Message {message.id} ignored from unauthorized group {message.chat.id}")
 
     async def schedule_delete(self, message):
         try:
             await asyncio.sleep(DELETE_TIME)
             await message.delete()
+            logger.info(f"Message {message.id} deleted successfully after {DELETE_TIME} seconds.")
         except Exception as e:
-            logger.warning(f"Delete failed: {e}")
+            logger.warning(f"Delete failed for message {message.id}: {e}")
 
     async def health_check(self, request):
         return web.Response(text="I'm alive!", content_type='text/html')
